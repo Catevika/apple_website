@@ -9,8 +9,24 @@ import { Canvas } from "@react-three/fiber";
 import * as THREE from 'three';
 import { models, sizes } from "../constants";
 import { animateWithGsapTimeline } from "../utils/animations";
+import Loader from "./Loader";
+
+const canCreateWebGLContext = () => {
+  try {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("webgl2");
+    if (!context) return false;
+
+    context.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
+  } catch (error) {
+    console.error("Unable to check WebGL availability.", error);
+    return false;
+  }
+};
 
 const Model = () => {
+  const [webGLAvailable] = useState(canCreateWebGLContext);
   const [size, setSize] = useState('small');
   const [model, setModel] = useState({
     title: 'iPhone 15 Pro in Natural Titanium',
@@ -30,9 +46,9 @@ const Model = () => {
   const [smallRotation, setSmallRotation] = useState(0);
   const [largeRotation, setLargeRotation] = useState(0);
 
-  const tl = gsap.timeline();
-
   useEffect(() => {
+    const tl = gsap.timeline();
+
     if (size === 'large') {
       animateWithGsapTimeline(tl, small, smallRotation, '#view1', '#view2', {
         transform: 'translateX(-100%)',
@@ -46,7 +62,9 @@ const Model = () => {
         duration: 2
       });
     }
-  }, [size]);
+
+    return () => tl.kill();
+  }, [size, smallRotation, largeRotation]);
 
   useGSAP(() => {
     gsap.to('#heading', { y: 0, opacity: 1 });
@@ -61,40 +79,56 @@ const Model = () => {
 
         <div className="flex flex-col items-center mt-5">
           <div className="w-full h-[75vh] md:h-[90vh] overflow-hidden relative">
-            <ModelView
-              index={1}
-              groupRef={small}
-              gsapType="view1"
-              controlRef={cameraControlSmall}
-              setRotationState={setSmallRotation}
-              item={model}
-              size={size}
-            />
+            {webGLAvailable ? (
+              <>
+                <ModelView
+                  index={1}
+                  groupRef={small}
+                  gsapType="view1"
+                  controlRef={cameraControlSmall}
+                  setRotationState={setSmallRotation}
+                  item={model}
+                  size={size}
+                />
 
-            <ModelView
-              index={2}
-              groupRef={large}
-              gsapType="view2"
-              controlRef={cameraControlLarge}
-              setRotationState={setLargeRotation}
-              item={model}
-              size={size}
-            />
+                <ModelView
+                  index={2}
+                  groupRef={large}
+                  gsapType="view2"
+                  controlRef={cameraControlLarge}
+                  setRotationState={setLargeRotation}
+                  item={model}
+                  size={size}
+                />
 
-            <Canvas
-              className="w-full h-full"
-              style={{
-                position: 'fixed',
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                overflow: 'hidden'
-              }}
-              eventSource={document.getElementById('root')}
-            >
-              <View.Port />
-            </Canvas>
+                <Canvas
+                  className="w-full h-full"
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    overflow: 'hidden'
+                  }}
+                  eventSource={document.getElementById('root')}
+                >
+                  <View.Port />
+                </Canvas>
+                <Loader />
+              </>
+            ) : (
+              <div
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black px-6 text-center"
+                role="alert"
+              >
+                <p className="text-xl font-semibold">3D preview unavailable</p>
+                <p className="max-w-md text-sm text-gray-400">
+                  Enable WebGL or hardware acceleration in your browser, or try
+                  a browser that supports WebGL.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mx-auto w-full">

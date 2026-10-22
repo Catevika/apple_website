@@ -1,14 +1,20 @@
-import { Html } from '@react-three/drei';
+import { useProgress } from '@react-three/drei';
 
 const Loader = () => {
+  const { active, progress } = useProgress();
+
+  if (!active) return null;
+
   return (
-    <Html>
-      <div className='absolute top-0 left-0 w-full h-full flex justify-center items-center'>
-        <div className='w-[10vw] h-[10vw] rounded-full'>
-          Loading...
-        </div>
+    <div
+      className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="rounded-full bg-black/70 px-5 py-3 text-sm text-white">
+        Loading model... {Math.round(progress)}%
       </div>
-    </Html>
+    </div>
   );
 };
 

@@ -17,12 +17,11 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: { react: { version: '18.3' } },
+    settings: { react: { version: 'detect' } },
     plugins: {
       react,
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
-      'react-three': reactThree
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -35,6 +34,13 @@ export default [
         { allowConstantExport: true },
       ],
       "no-unused-vars": 1
+    },
+  },
+  {
+    files: ['src/components/IphoneModel.jsx', 'src/components/ModelView.jsx'],
+    rules: {
+      'react/no-unknown-property': 'off',
+      'react/prop-types': 'off',
     },
   },
 ];
